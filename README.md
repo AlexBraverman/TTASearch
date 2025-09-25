@@ -18,17 +18,13 @@ TTA* casts reasoning as a goal-directed tree search where a single SLM iterative
 - Full list of prompts
   
 ---
+## Datasets
+- **MATH401:** [https://github.com/GanjinZero/math401-llm](https://github.com/GanjinZero/math401-llm)  
+- **MATH500, GSM8K, AIME (2024):** all available on [HuggingFace Datasets](https://huggingface.co/datasets)
+## Files
 
-## Quick start
-
-```bash
-# clone
-git clone https://github.com/<username>/tta-star.git
-cd tta-star
-
-# create env (Python 3.10+)
-python -m venv .venv
-source .venv/bin/activate
+- `benchmark.py` — for running benchmarks on models and datasets.  
+- `tta.py` — implementation of our method.
 pip install -r requirements.txt
 
 # run an example reproduction (example from paper)
