@@ -6,6 +6,9 @@ from datasets import load_dataset
 from transformers import AutoModelForCausalLM, AutoTokenizer
 import torch
 
+# -------------------------------
+# Setup Qwen-3-4B
+# -------------------------------
 model_name = "Qwen/Qwen3-4B-Instruct-2507"
 print("Loading model...")
 tokenizer = AutoTokenizer.from_pretrained(model_name)
@@ -17,16 +20,19 @@ model = AutoModelForCausalLM.from_pretrained(
 device = "cuda" if torch.cuda.is_available() else "cpu"
 model = model.to(device)
 
-def llm_generate_local(prompt, max_new_tokens=1024):
+def llm_generate_local(prompt, max_new_tokens=1024, temperature=0.3):
     inputs = tokenizer(prompt, return_tensors="pt").to(device)
     outputs = model.generate(
         **inputs,
         max_new_tokens=max_new_tokens,
         do_sample=True,
-        temperature=0.3,
+        temperature=temperature,
     )
     return tokenizer.decode(outputs[0], skip_special_tokens=True)
 
+# -------------------------------
+# Node class
+# -------------------------------
 class Node:
     def __init__(self, question, answer, depth=0):
         self.question = question
@@ -35,6 +41,9 @@ class Node:
         self.critique = self.generate_critic()
         self.reward = self.compute_reward()
         self.f = None  # f(n) = g(n) + h(n)
+
+    def get_answer(self):
+        return self.answer
 
     def generate_critic(self):
         prompt = (
@@ -50,7 +59,6 @@ class Node:
         return max(0, min(int(match.group(1)), 100)) if match else 50
 
     def compute_reward(self, num_evals=3):
-        # Self-consistency: multiple independent evaluations
         total = 0
         for _ in range(num_evals):
             critique = self.generate_critic()
@@ -63,7 +71,9 @@ class Node:
         self.f = g + h
         return self.f
 
-
+# -------------------------------
+# A* LLM class
+# -------------------------------
 class AStarLLM:
     def __init__(self, question, max_iter=8, w=1.0):
         self.question = question
@@ -72,7 +82,6 @@ class AStarLLM:
         self.nodes_to_visit = []
 
     def search(self):
-        # Initialize root
         root_answer = llm_generate_local(f"Solve step by step:\n{self.question}")
         root = Node(self.question, root_answer, depth=0)
         root.compute_f(self.w)
@@ -83,7 +92,6 @@ class AStarLLM:
             if not self.nodes_to_visit:
                 break
 
-            # Select node with minimum f(n)
             current_node = min(self.nodes_to_visit, key=lambda n: n.f)
             self.nodes_to_visit.remove(current_node)
 
@@ -108,21 +116,23 @@ class AStarLLM:
 
         return best_node, best_node.reward
 
-# edit based on dataset
+# -------------------------------
+# Run benchmark
+# -------------------------------
 dataset = load_dataset("HuggingFaceH4/MATH-500", split="test")
 results_dir = "math500_astar_results"
 os.makedirs(results_dir, exist_ok=True)
 
 start_time = time.time()
 for idx, problem in enumerate(tqdm(dataset, desc="Running A*")):
-    question = problem["problem"] # edit based on dataset
-    ground_truth = problem["solution"] # edit based on dataset
+    question = problem["problem"]
+    ground_truth = problem["solution"]
 
     astar = AStarLLM(question, max_iter=8)
     final_node, score = astar.search()
 
     print(f"\nProblem {idx + 1}")
-    print("Answer:\n", final_node.get_answer())
+    print("Answer:\n", final_node.answer)
     print("Critique Score:", score)
     print("-" * 50)
 
@@ -132,7 +142,7 @@ for idx, problem in enumerate(tqdm(dataset, desc="Running A*")):
         f.write(f"Problem {idx + 1}\n")
         f.write(f"Question:\n{question}\n")
         f.write("-" * 50 + "\n")
-        f.write(f"LLM Answer:\n{final_node.get_answer()}\n")
+        f.write(f"LLM Answer:\n{final_node.answer}\n")
         f.write("-" * 50 + "\n")
         f.write(f"Score:\n{score}\n")
         f.write("-" * 50 + "\n")
