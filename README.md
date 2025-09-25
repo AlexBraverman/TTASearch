@@ -25,7 +25,7 @@ TTA* casts reasoning as a goal-directed tree search where a single SLM iterative
 
 - `benchmark.py` — for running benchmarks on models and datasets.  
 - `tta.py` — implementation of our method.
-pip install -r requirements.txt
+
 
 # run an example reproduction (example from paper)
-python run_tta.py --config configs/qwen3-4b_gsm8k.yaml --seed 42
+python run_tta.py --config configs/qwen3-4b_gsm8k.yaml --seed 4            
