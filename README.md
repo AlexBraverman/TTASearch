@@ -6,8 +6,7 @@ TTA* casts reasoning as a goal-directed tree search where a single SLM iterative
 ---
 
 ## Highlights
-- **Training-free**: works as an inference-time wrapper — no fine-tuning or extra models required.  
-- **Anytime & budgeted**: supports explicit compute budgets and early stopping.  
+- **Training-free**: works as an inference-time wrapper — no fine-tuning or extra models required.   
 - **Robust self-reflection**: averages multiple self-evaluations to stabilize noisy SLM critiques.  
 - **Practical**: designed for 1–8B models (LLaMA, Qwen, etc.), enabling deployment on consumer GPUs.
 
@@ -15,10 +14,9 @@ TTA* casts reasoning as a goal-directed tree search where a single SLM iterative
 
 ## Features
 - Implementation of the TTA* search loop: root generation → critique → self-evaluation → child generation → A* selection.  
-- Configurable hyperparameters (temperature, children per expansion, self-eval samples, A* weight `w`, `max_iterations`).  
-- Ready-to-run configs for common experiments (example: GSM8K with Qwen3-4B).  
-- Full logging of chain-of-thought, critiques, and numerical self-evaluations for reproducibility and auditing.
-
+- Configurable hyperparameters (temperature, children per expansion, A* weight `w`, `max_iterations`).  
+- Full list of prompts
+  
 ---
 
 ## Quick start
